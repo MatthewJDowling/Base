@@ -3,7 +3,8 @@
 
 // This header has definitions you may want to change
 #include "components\compdef.h"
-
+#include "components\Health.h"
+#include "components\Faction.h"
 #include "components\Transform.h"
 #include "components\Collider.h"
 #include "components\Rigidbody.h"

@@ -84,5 +84,14 @@
     <ClInclude Include="base\components\Text.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="base\components\Health.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\components\Faction.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="base\components\Damage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

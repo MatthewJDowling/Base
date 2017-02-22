@@ -115,6 +115,8 @@
     <ClInclude Include="base\components\Camera.h" />
     <ClInclude Include="base\components\Collider.h" />
     <ClInclude Include="base\components\compdef.h" />
+    <ClInclude Include="base\components\Damage.h" />
+    <ClInclude Include="base\components\Faction.h" />
     <ClInclude Include="base\components\Lifetime.h" />
     <ClInclude Include="base\components\Rigidbody.h" />
     <ClInclude Include="base\components\Sprite.h" />
@@ -133,6 +135,7 @@
     <ClInclude Include="base\math\rand.h" />
     <ClInclude Include="base\math\vec2.h" />
     <ClInclude Include="base\math\vec3.h" />
+    <ClInclude Include="base\components\Health.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

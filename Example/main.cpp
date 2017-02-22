@@ -13,6 +13,7 @@ void main()
 	sfw::initContext();
 
 
+
 	GameState gs;
 
 	gs.init(); // called once

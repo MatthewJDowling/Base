@@ -9,11 +9,12 @@ namespace base
 	{		
 		hull m_hull;
 		aabb m_localBox;
+		bool m_trigger;
 
 	public:
-		Collider(float radius = 0.5f)		     : m_hull(radius)     { m_localBox = m_hull.boundingBox(); }
-		Collider(const vec2 *ccw, size_t a_size) : m_hull(ccw,a_size) { m_localBox = m_hull.boundingBox(); }
-		Collider(const hull &a_hull)             : m_hull(a_hull)     { m_localBox = m_hull.boundingBox(); }
+		Collider(float radius = 0.5f, bool blocking = true)			   : m_hull(radius), m_trigger(blocking) { m_localBox = m_hull.boundingBox(); }
+		Collider(const vec2 *ccw, size_t a_size, bool blocking = true) : m_hull(ccw,a_size), m_trigger(blocking) { m_localBox = m_hull.boundingBox(); }
+		Collider(const hull &a_hull, bool blocking = true)             : m_hull(a_hull), m_trigger(blocking) { m_localBox = m_hull.boundingBox(); }
 
 		const aabb &getLocalBounds() const { return m_localBox; }	
 		const aabb &getGlobalBounds(const Transform *T) const { return T->getGlobalTransform() * m_localBox; }
@@ -37,6 +38,9 @@ namespace base
 			sfw::drawLine(t_hull.points[i].x, t_hull.points[i].y, t_hull.points[(i + 1) % m_hull.size].x, t_hull.points[(i+1)%m_hull.size].y, 0xAAAAAAAA);
 			}
 		}
+
+		bool isTrigger() { return m_trigger; }
+		void setTrigger(bool trigger) { m_trigger = trigger; }
 	};
 
 	bool BoundsTest(const Transform *AT, const Collider *AC,

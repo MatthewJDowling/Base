@@ -19,21 +19,21 @@
 class GameState : public BaseState
 {
 	Factory factory;
-	unsigned spr_space, spr_ship, spr_bullet, spr_roid, spr_font;
+	unsigned spr_space, spr_player, spr_bullet, spr_zombie, spr_font;
 	ObjectPool<Entity>::iterator currentCamera;
 
 public:
 	virtual void init()
 	{
 		spr_bullet = sfw::loadTextureMap("../res/bullet.png");
-		spr_space = sfw::loadTextureMap("../res/space.jpg");
-		spr_ship = sfw::loadTextureMap("../res/ship.png");
-		spr_roid = sfw::loadTextureMap("../res/rock.png");
+		spr_player = sfw::loadTextureMap("../res/character.png");
+		spr_zombie = sfw::loadTextureMap("../res/zombie.png");
 		spr_font = sfw::loadTextureMap("../res/font.png",32,4);
 	}
 
 	virtual void play()
 	{
+		
 		// delete any old entities sitting around
 		for (auto it = factory.begin(); it != factory.end(); it->onFree(), it.free());
 
@@ -42,13 +42,13 @@ public:
 		currentCamera->transform->setGlobalPosition(vec2{ 400, 300 });
 
 		// call some spawning functions!
-		factory.spawnStaticImage(spr_space, 0, 0, 800, 600);
+		//factory.spawnStaticImage(spr_space, 0, 0, 800, 600);
 
-		factory.spawnPlayer(spr_ship, spr_font);
-		factory.spawnAsteroid(spr_roid);
-		factory.spawnAsteroid(spr_roid);
-		factory.spawnAsteroid(spr_roid);
-		factory.spawnAsteroid(spr_roid);
+		factory.spawnPlayer(spr_player);
+		factory.BuildTheWall();
+		
+		
+		
 	}
 
 	virtual void stop()
@@ -67,6 +67,15 @@ public:
 		float dt = sfw::getDeltaTime();
 
 		// maybe spawn some asteroids here.
+		// maybe spawn some zombies here.
+		 static float tempDeleteMeHolyFuck = 2.0f;
+		tempDeleteMeHolyFuck -= dt;
+
+		if (tempDeleteMeHolyFuck < 0)
+		{
+			factory.spawnZombie(spr_zombie);
+			tempDeleteMeHolyFuck = 2.0f;
+		}
 
 		for(auto it = factory.begin(); it != factory.end();) // no++!
 		{
@@ -83,15 +92,35 @@ public:
 				e.controller->poll(&e.transform, &e.rigidbody, dt);
 				if (e.controller->shotRequest) // controller requested a bullet fire
 				{
-					factory.spawnBullet(spr_bullet, e.transform->getGlobalPosition()  + e.transform->getGlobalUp()*48,
-											vec2{ 32,32 }, e.transform->getGlobalAngle(), 200, 1);
+					factory.spawnBullet(spr_bullet, e.transform->getGlobalPosition()  + perp(e.transform->getGlobalUp() ),
+											vec2{ 32,32 }, e.transform->getGlobalAngle(), 150, 1);
 				}
 			}
 			// lifetime decay update
+
+			if (e.health && e.rigidbody)
+			{
+				if (e.health->isDead())
+				{
+					del = true;
+				}
+				e.health->PushBack(&e.rigidbody);
+			}
+
 			if (e.lifetime)
 			{
 				e.lifetime->age(dt);
 				if (!e.lifetime->isAlive())
+					del = true;
+			
+			}
+			// health update
+			if (e.health)
+			{
+				if(e.rigidbody)
+					e.health->update(&e.rigidbody);
+				//std::cout << "ENTITY HEALTH" << e.health->getHealth() << std::endl;
+				if (e.health->isDead())
 					del = true;
 			}
 
@@ -123,13 +152,52 @@ public:
 						// if there was a collision,
 						if (cd.result())
 						{
-							// condition for dynamic resolution
-							if (it->rigidbody && bit->rigidbody)
-								base::DynamicResolution(cd,&it->transform,&it->rigidbody, &bit->transform, &bit->rigidbody);
-							
-							// condition for static resolution
-							else if (it->rigidbody && !bit->rigidbody)							
-								base::StaticResolution(cd, &it->transform, &it->rigidbody);					
+							// COLLISION SOLVER
+							if (!it->collider->isTrigger() && !bit->collider->isTrigger())
+							{
+								// condition for dynamic resolution
+								if (it->rigidbody && bit->rigidbody)
+									base::DynamicResolution(cd, &it->transform, &it->rigidbody, &bit->transform, &bit->rigidbody);
+
+								// condition for static resolution
+								else if (it->rigidbody && !bit->rigidbody)
+									base::StaticResolution(cd, &it->transform, &it->rigidbody);
+							}
+							// GAME CODE
+							if (it->health && bit->rigidbody && bit->lifetime)
+							{
+								if (it->teams && bit->teams &&
+									it->teams->getTeam() == bit->teams->getTeam())
+								{
+									
+									
+								}
+								else
+								{	
+									std::cout << "Hit" << std::endl;
+									bit->lifetime->lifespan = 0.f;
+									it->health->takeDamage(1);			
+									it->health->pushRequest = true;
+									it->health->PushBack(&it->rigidbody);
+								}
+							}
+							if (it->health && bit->health)
+							{
+								if (it->teams && bit->teams &&
+									it->teams->getTeam() == bit->teams->getTeam())
+								{
+
+								}
+								else
+								{
+									std::cout << "Zombie hit wall" << std::endl;
+									it->health->takeDamage(1);
+									bit->health->pushRequest = true;
+									bit->health->PushBack(&bit->rigidbody);
+									//bit->rigidbody->addImpulse(vec2{ 75,0 });
+									//bit->transform->setGlobalPosition(bit->transform->getGlobalPosition() + vec2{ 300,0 });
+								}
+							}
 						}
 					}
 				}
